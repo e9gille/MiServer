@@ -64,7 +64,7 @@
           :EndIf
      
           'Pages'#.⎕NS'' ⍝ Container Space for loaded classes
-          #.Pages.(MiPage MildPage EAWC RESTful)←#.(MiPage MildPage EAWC RESTful)
+          #.Pages.(MiPage MildPage EAWC RESTful MiSocket)←#.(MiPage MildPage EAWC RESTful MiSocket)
           BuildEAWC ⍝ build the Easy As ⎕WC namespace
           :If #.Files.DirExists AppRoot,'/Code/Templates/'
               disperror ⎕SE.SALT.Load AppRoot,'Code/Templates/* -target=#.Pages'
@@ -247,7 +247,8 @@
       Config.Name←Config Setting'Name' 0 'MiServer'
       Config.Port←Config Setting'Port' 1 8080
       Config.Production←Config Setting'Production' 1 0 ⍝ production mode?  (0/1 = development debug framework en/disabled)
-      Config.Rest←Config Setting'Rest' 1 0 ⍝ RESTful web service?
+⍝      Config.Rest←Config Setting'Rest' 1 0 ⍝ RESTful web service?
+      Config.Rest←{⎕ML←3 ⋄ ⍵⊂⍨~⍵∊' ,'}#.Strings.lc Config Setting'Rest' 0 '' ⍝ RESTful web service?
       Config.RootCertDir←Config Setting'RootCertDir' 0 ''
       Config.Root←folderize MSRoot{((isRelPath ⍵)/⍺),⍵}AppRoot
       Config.SSLFlags←Config Setting'SSLFlags' 1(32+64)  ⍝ Accept Without Validating, RequestClientCertificate

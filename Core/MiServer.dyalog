@@ -112,7 +112,7 @@
     ∇
     :endsection
 
-    ∇ r←RunServer arg;RESUME;⎕TRAP;Common;cmd;name;port;wres;ref;nspc;sink;Stop;secure;certpath;flags;z;rc;rate;ErrorCount;idletime;msg;uid;ts;CMTid
+    ∇ r←RunServer arg;RESUME;⎕TRAP;cmd;name;port;wres;ref;nspc;sink;Stop;secure;certpath;flags;z;rc;rate;ErrorCount;idletime;msg;uid;ts;CMTid;obj;event;data
       ⍝ Simple HTTP (Web) Server framework
       ⍝ Assumes Conga available in #.DRC and uses #.HTTPRequest
       ⍝ arg: dummy
@@ -146,12 +146,14 @@
                   ⎕EX SpaceName 2⊃wres
      
               :CaseList 'Block' 'BlockLast'
+                  rc obj event data←4↑wres
                   nspc←SpaceName 2⊃wres
                   :If 0=⎕NC nspc
                       :Trap 6 ⍝ VALUE ERROR - nspc could be erased if page goes away
                           nspc ⎕NS''
                           (⍎nspc).(Pos Buffer ContentLength Req)←0 '' 0 ''
-                          :If 0=1⊃z←#.DRC.GetProp(2⊃wres)'PeerAddr' ⋄ (⍎nspc).PeerAddr←2⊃z
+                          (⍎nspc).(IsWebSocket Connection)←0 obj
+                          :If 0=1⊃z←#.DRC.GetProp obj'PeerAddr' ⋄ (⍎nspc).PeerAddr←2⊃z
                           :Else ⋄ (⍎nspc).PeerAddr←'Unknown'
                           :EndIf
                           :If Config.Secure
@@ -166,8 +168,13 @@
                   :EndIf
      
                   :If 0≠⎕NC nspc
-                      {}(⍎nspc){⎕EX nspc/⍨('BlockLast'≡3⊃⍵)∧⍺ HandleRequest(2↑⍵)}&wres[2 4 3] ⍝ Run page handler in new thread
+                      :If (⍎nspc).IsWebSocket
+                          {}(⍎nspc){⍺ HandleWebSocket ⍵}&obj data        ⍝ Run page handler in new thread
+                      :Else
+                          {}(⍎nspc){⎕EX nspc/⍨('BlockLast'≡3⊃⍵)∧⍺ HandleRequest(2↑⍵)}&obj data event ⍝ Run page handler in new thread
                   :EndIf
+                  :EndIf
+     
               :Case 'Connect' ⍝ Ignore
      
               :Else
@@ -198,6 +205,7 @@
       ⎕TKILL CMTid
       {}#.DRC.Close ServerName
       1 Log r←'Web server ''',ServerName,''' stopped '
+      ⎕EX'Common'
       →0
      
     ∇
@@ -296,7 +304,96 @@
       :EndIf
     ∇
 
-    ∇ r←conns HandleRequest arg;buf;m;Answer;obj;CMD;pos;req;Data;z;r;hdr;REQ;status;file;tn;length;done;offset;res;closed;sess;chartype;raw;enc;which;html;encoderc;encodeMe;startsize;cacheMe;root;page;filename;eoh;n;i
+    ∇ conns HandleWebSocket arg;cn;data;page;ws
+     
+      cn data←arg
+      conns.Buffer,←data
+      :Repeat
+          page←conns.Session.Pages{⍺⊃⍨⍺._PageName⍳⊂⍵}conns.Page
+          ws←⎕NEW #.WebSocket(,⊂conns)
+     
+          :Select ws.OPCODE
+          :Case #.WebSocket.OP_CONTINUATION
+              :If page._OPCODE=#.WebSocket.OP_TEXT
+                  ws.payload←'UTF-8'⎕UCS ws.payload
+                  page._FragmentBuffer,←ws.payload
+                  page.OnTextFragment ws
+                  :If ws.FIN
+                      ws.payload←page._FragmentBuffer
+                      page.OnText ws
+                  :EndIf
+              :Else
+                  page._FragmentBuffer,←ws.payload
+                  page.OnBinaryFragment ws
+                  :If ws.FIN
+                      ws.payload←page._FragmentBuffer
+                      page.OnBinary ws
+                  :EndIf
+              :EndIf
+     
+          :Case #.WebSocket.OP_TEXT
+              :If ws.FIN=0
+                  page._OPCODE←ws.OPCODE
+                  page._FragmentBuffer←ws.payload
+                  page.OnTextFragment ws
+              :Else
+                  page.OnText ws
+              :EndIf
+     
+          :Case #.WebSocket.OP_BINARY
+              :If ws.FIN=0
+                  page._OPCODE←ws.OPCODE
+                  page._FragmentBuffer←ws.payload
+                  page.OnBinaryFragment ws
+              :Else
+                  page.OnBinary ws
+              :EndIf
+     
+          :Case #.WebSocket.OP_CLOSE
+              page.OnClose ws
+     
+          :Case #.WebSocket.OP_PING
+              page.OnPing ws
+     
+          :Case #.WebSocket.OP_PONG
+              page.OnPong ws
+     
+          :EndSelect
+      :Until (0∊⍴conns.Buffer)∨~ws.completed
+ ⍝
+    ∇
+
+    ∇ WebSocketHandshake(req obj);hdrs;ws_key;magic_key;ws_accept;ws_ver;ws_ext;res;status;hdr;answer;z
+⍝
+      res←req.Response
+     
+      ws_key←req.GetHeader'Sec-WebSocket-Key'
+      ws_ver←req.GetHeader'Sec-WebSocket-Version'
+      ws_ext←req.GetHeader'Sec-WebSocket-Extensions'
+      magic_key←'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+      ws_accept←#.Hash.Base64 #.Hash.GetSHA1 ws_key,magic_key
+     
+      res.(Status StatusText)←101 'WebSocket Protocol Handshake'
+     
+      hdrs←0 2⍴''
+      hdrs⍪←'Upgrade' 'websocket'
+      hdrs⍪←'Connection' 'Upgrade'
+      hdrs⍪←'Sec-WebSocket-Accept'ws_accept
+      hdrs⍪←'Access-Control-Allow-Origin' 'null'
+      res.Headers←hdrs
+     ⍝Sec-WebSocket-Extensions
+     ⍝Sec-WebSocket-Protocol: chat
+     ⍝
+      status←res.((⍕Status),' ',StatusText)
+      hdr←{⎕ML←3 ⋄ ∊⍵}{⍺,': ',⍵,NL}/res.Headers
+      answer←(toutf8'HTTP/1.1 ',status,NL,'Content-Length: ',(⍕0),NL,hdr,NL),res.HTML
+     
+      :If 0≠1⊃z←#.DRC.Send obj answer
+               ⍝ Failed? What to do?
+      :EndIf
+    ∇
+
+    ∇ r←conns HandleRequest arg;buf;m;Answer;obj;CMD;pos;req;Data;z;r;hdr;REQ;status;file;tn;length;done;offset;res;closed;sess;chartype;raw;enc;which;html;encoderc;encodeMe;startsize;cacheMe;root;page;filename;eoh;n;i;restpage
       ⍝ Handle a Web Server Request
       r←0
       obj buf←arg
@@ -337,10 +434,12 @@
      
       :If 2=conns.⎕NC'PeerCert' ⋄ REQ.PeerCert←conns.PeerCert ⋄ :EndIf       ⍝ Add Client Cert Information
      
-      :If Config.Rest  ⍝ if running RESTful web service...
+      :If ~0∊⍴Config.Rest  ⍝ if running RESTful web service...
           n←+/∧\2>+\REQ.Page∊'/\'
+          restpage←n↑REQ.Page
+      :AndIf (⊂restpage)∊Config.Rest
           REQ.RestReq←n↓REQ.Page
-          REQ.Page←n↑REQ.Page
+          REQ.Page←restpage
       :EndIf
      
       REQ.Page←Config.DefaultPage{∧/⍵∊'/\':'/',⍺ ⋄ '/\'∊⍨¯1↑⍵:⍵,⍺ ⋄ ⍵}REQ.Page
@@ -352,6 +451,7 @@
       :If REQ.Response.Status≠401 ⍝ Authentication did not fail
      
           filename←Config Virtual REQ.Page
+     
           :If Config.AllowedHttpCommands∊⍨⊂REQ.Command
      
               :If REQ.Page endswith Config.DefaultExtension ⍝ MiPage?
@@ -369,6 +469,22 @@
       :EndIf
      
       res←REQ.Response
+     
+      :If 'websocket'≡REQ.GetHeader'upgrade'
+      :AndIf res.Status=101
+          conns.IsWebSocket←1
+          conns.Page←REQ.Page
+          conns.Session←REQ.Session
+     
+          status←res.((⍕Status),' ',StatusText)
+          hdr←{⎕ML←3 ⋄ ∊⍵}{⍺,': ',⍵,NL}/res.Headers
+          Answer←(toutf8'HTTP/1.1 ',status,NL,'Content-Length: ',(⍕0),NL,hdr,NL),res.HTML
+     
+          :If 0≠1⊃z←#.DRC.Send obj Answer
+               ⍝ Failed? What to do?
+          :EndIf
+          :Return
+      :EndIf
      
       encodeMe←conns.Handler<Config.UseContentEncoding ⍝ initialize a flag whether to encode this response, don't compresss if running as a handler
       cacheMe←0
@@ -450,7 +566,7 @@
  ⍝     :EndHold
     ∇
 
-    ∇ file HandleMSP REQ;⎕TRAP;inst;class;z;props;lcp;args;i;ts;date;n;expired;data;m;oldinst;names;html;sessioned;page;root;fn;MS3;token;cb;mask;resp;t;RESTful;APLJax;flag
+    ∇ file HandleMSP REQ;⎕TRAP;inst;class;z;props;lcp;args;i;ts;date;n;expired;data;m;oldinst;names;html;sessioned;page;root;fn;MS3;token;cb;mask;resp;t;RESTful;APLJax;flag;MiSocket
     ⍝ Handle a "Mildserver Page" request
      RETRY:
       :If 0≡date←3⊃(,''#.Files.List file),0 0 0
@@ -471,11 +587,9 @@
           :EndIf
       :AndIf ~expired
           4 Log'Using existing instance of page: ',REQ.Page
-          :If 9=⎕NC'#.HtmlPage'
-              :If MS3←∨/(∊⎕CLASS inst)∊#.HtmlPage ⋄ inst._Request←REQ ⋄ :EndIf
-          :EndIf
-          :If 9=⎕NC'#.RESTful'
-              :If RESTful←∨/(∊⎕CLASS inst)∊#.RESTful ⋄ inst._Request←REQ ⋄ :EndIf
+          MS3 RESTful MiSocket←#.HTMLInput #.RESTful #.MiSocket∊∊⎕CLASS inst
+          :If MS3∨RESTful∨MiSocket
+              inst._Request←REQ
           :EndIf
       :Else                        ⍝ First use of Page in this Session, or page expired
           :If 0≠⍴z←#.Files.GetText file
@@ -488,13 +602,10 @@
               4 Log'Creating new instance of page: ',REQ.Page
               inst._PageName←REQ.Page
               inst._PageDate←date
-              MS3←RESTful←0
-              :If 9=⎕NC'#.HtmlPage'
-                  :If MS3←∨/(∊⎕CLASS inst)∊#.HtmlPage
-                  :OrIf RESTful←∨/(∊⎕CLASS inst)∊#.RESTful
+              MS3 RESTful MiSocket←#.HTMLInput #.RESTful #.MiSocket∊∊⎕CLASS inst
+              :If MS3∨RESTful∨MiSocket
                       inst.(_Request _PageRef)←REQ inst
                   :EndIf
-              :EndIf
               :If sessioned ⋄ REQ.Session.Pages,←inst ⋄ :EndIf
           :Else
               REQ.Fail 404 ⋄ →0
@@ -569,7 +680,7 @@
           :EndIf
      
           :Trap 85   ⍝ we use 85⌶ because "old" MiPages use REQ.Return internally (and don't return a result)...
-              resp←flag Debugger'inst.',cb,(MS3⍱RESTful)/' REQ'  ⍝ ... whereas "new" MiPages return the HTML they generate
+              resp←flag Debugger'inst.',cb,(~∨/MS3 RESTful MiSocket)/' REQ'  ⍝ ... whereas "new" MiPages return the HTML they generate
               resp←(#.JSON.toAPLJAX⍣APLJax)resp
               REQ.Return resp
           :Else
@@ -580,7 +691,7 @@
           :EndTrap
      
           :If ~REQ.Response.NoWrap
-              :If MS3∨RESTful
+              :If MS3∨RESTful∨MiSocket
                   inst.Wrap
               :Else
                   inst.Wrap REQ
@@ -646,6 +757,17 @@
     :endsection
 
     :section Misc
+
+    ∇ r←GetOpenWebSockets;conns;ns
+      :Access Public
+    ⍝ Return all open
+      r←⍬
+      :If ~0∊⍴conns←Common.(⎕NL-9)
+          ns←{⍵.IsWebSocket/⍵}Common.⍎¨conns
+      :AndIf ~0∊⍴ns
+          r←{⎕NEW #.WebSocket(,⊂⍵)}¨ns.Connection
+      :EndIf
+    ∇
 
     ∇ ConnectionMonitor server
     ⍝ Because AJAX calls don't send a "BlockLast" packet, we need to clean up connection namespaces that didn't get erased
