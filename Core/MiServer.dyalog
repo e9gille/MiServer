@@ -172,7 +172,7 @@
                           {}(⍎nspc){⍺ HandleWebSocket ⍵}&obj data        ⍝ Run page handler in new thread
                       :Else
                           {}(⍎nspc){⎕EX nspc/⍨('BlockLast'≡3⊃⍵)∧⍺ HandleRequest(2↑⍵)}&obj data event ⍝ Run page handler in new thread
-                  :EndIf
+                      :EndIf
                   :EndIf
      
               :Case 'Connect' ⍝ Ignore
@@ -604,8 +604,8 @@
               inst._PageDate←date
               MS3 RESTful MiSocket←#.HTMLInput #.RESTful #.MiSocket∊∊⎕CLASS inst
               :If MS3∨RESTful∨MiSocket
-                      inst.(_Request _PageRef)←REQ inst
-                  :EndIf
+                  inst.(_Request _PageRef)←REQ inst
+              :EndIf
               :If sessioned ⋄ REQ.Session.Pages,←inst ⋄ :EndIf
           :Else
               REQ.Fail 404 ⋄ →0
@@ -758,12 +758,12 @@
 
     :section Misc
 
-    ∇ r←GetOpenWebSockets;conns;ns
+    ∇ r←GetOpenWebSockets url;conns;ns
       :Access Public
     ⍝ Return all open
       r←⍬
       :If ~0∊⍴conns←Common.(⎕NL-9)
-          ns←{⍵.IsWebSocket/⍵}Common.⍎¨conns
+          ns←url{(⍵.IsWebSocket∧⍵.Page∊⊂⍺)/⍵}Common.⍎¨conns
       :AndIf ~0∊⍴ns
           r←{⎕NEW #.WebSocket(,⊂⍵)}¨ns.Connection
       :EndIf
@@ -827,4 +827,3 @@
     :endsection
 
 :EndClass
-⍝)(!Virtual!!0 0 0 0 0 0 0

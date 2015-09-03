@@ -4,10 +4,10 @@
 
     :Field Public _PageName←'' ⍝ Page file name
     :Field Public _PageDate←'' ⍝ Page saved date
-    :field Public _Request     ⍝ HTTPRequest
-    :field Public _PageData    ⍝
-    :field Public _OPCODE      ⍝
-    :field Public _FragmentBuffer
+    :field Public _Request←⍬   ⍝ HTTPRequest
+    :field Public _PageData←⍬  ⍝
+    :field Public _OPCODE←¯1   ⍝
+    :field Public _FragmentBuffer←⍬
 
     ∇ Make
       :Access public
