@@ -363,36 +363,6 @@
  ⍝
     ∇
 
-    ∇ WebSocketHandshake(req obj);hdrs;ws_key;magic_key;ws_accept;ws_ver;ws_ext;res;status;hdr;answer;z
-⍝
-      res←req.Response
-     
-      ws_key←req.GetHeader'Sec-WebSocket-Key'
-      ws_ver←req.GetHeader'Sec-WebSocket-Version'
-      ws_ext←req.GetHeader'Sec-WebSocket-Extensions'
-      magic_key←'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-      ws_accept←#.Hash.Base64 #.Hash.GetSHA1 ws_key,magic_key
-     
-      res.(Status StatusText)←101 'WebSocket Protocol Handshake'
-     
-      hdrs←0 2⍴''
-      hdrs⍪←'Upgrade' 'websocket'
-      hdrs⍪←'Connection' 'Upgrade'
-      hdrs⍪←'Sec-WebSocket-Accept'ws_accept
-      hdrs⍪←'Access-Control-Allow-Origin' 'null'
-      res.Headers←hdrs
-     ⍝Sec-WebSocket-Extensions
-     ⍝Sec-WebSocket-Protocol: chat
-     ⍝
-      status←res.((⍕Status),' ',StatusText)
-      hdr←{⎕ML←3 ⋄ ∊⍵}{⍺,': ',⍵,NL}/res.Headers
-      answer←(toutf8'HTTP/1.1 ',status,NL,'Content-Length: ',(⍕0),NL,hdr,NL),res.HTML
-     
-      :If 0≠1⊃z←#.DRC.Send obj answer
-               ⍝ Failed? What to do?
-      :EndIf
-    ∇
-
     ∇ r←conns HandleRequest arg;buf;m;Answer;obj;CMD;pos;req;Data;z;r;hdr;REQ;status;file;tn;length;done;offset;res;closed;sess;chartype;raw;enc;which;html;encoderc;encodeMe;startsize;cacheMe;root;page;filename;eoh;n;i;restpage
       ⍝ Handle a Web Server Request
       r←0

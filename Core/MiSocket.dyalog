@@ -62,7 +62,7 @@
       ws_ver←_Request.GetHeader'Sec-WebSocket-Version'
       ws_ext←_Request.GetHeader'Sec-WebSocket-Extensions'
       magic_key←'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-      ws_accept←#.Hash.Base64 #.Hash.GetSHA1 ws_key,magic_key
+      ws_accept←#.Base64.Encode ⎕UCS #.Hash.GetSHA1 ws_key,magic_key
      
       res.(Status StatusText)←101 'WebSocket Protocol Handshake'
      
