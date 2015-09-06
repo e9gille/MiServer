@@ -733,7 +733,7 @@
     ⍝ Return all open
       r←⍬
       :If ~0∊⍴conns←Common.(⎕NL-9)
-          ns←url{(⍵.IsWebSocket∧⍵.Page∊⊂⍺)/⍵}Common.⍎¨conns
+          ns←url{(⍵.Page∊⊂⍺)/⍵}{⍵.IsWebSocket/⍵}Common.⍎¨conns
       :AndIf ~0∊⍴ns
           r←{⎕NEW #.WebSocket(,⊂⍵)}¨ns.Connection
       :EndIf

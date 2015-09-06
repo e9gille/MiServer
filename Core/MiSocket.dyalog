@@ -85,6 +85,10 @@
       resp←''
     ∇
 
+    ∇ ws←GetOpenWebSockets
+      :Access Public Instance
+      ws←_Request.Server.GetOpenWebSockets _PageName
+    ∇
 
     :Section WebSocketCallbacks
 
