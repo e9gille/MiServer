@@ -405,10 +405,10 @@
      
       :If 2=conns.⎕NC'PeerCert' ⋄ REQ.PeerCert←conns.PeerCert ⋄ :EndIf       ⍝ Add Client Cert Information
      
-      :If ~0∊⍴Config.Rest  ⍝ if running RESTful web service...
+      :If ~0∊⍴Config.RESTful  ⍝ if running RESTful web service...
           n←+/∧\2>+\REQ.Page∊'/\'
           restpage←n↑REQ.Page
-      :AndIf (⊂restpage)∊Config.Rest
+      :AndIf (⊂restpage)∊Config.RESTful
           REQ.RESTfulReq←n↓REQ.Page
           REQ.Page←restpage
       :EndIf
@@ -560,7 +560,7 @@
           :EndIf
       :AndIf ~expired
           4 Log'Using existing instance of page: ',REQ.Page
-          MS3 RESTful MiSocket←#.HTMLInput #.RESTful #.MiSocket∊∊⎕CLASS inst
+          MS3 RESTful MiSocket←#.HtmlPage #.RESTful #.MiSocket∊∊⎕CLASS inst
           :If MS3∨RESTful∨MiSocket
               inst._Request←REQ
           :EndIf
@@ -575,7 +575,7 @@
               4 Log'Creating new instance of page: ',REQ.Page
               inst._PageName←REQ.Page
               inst._PageDate←date
-              MS3 RESTful MiSocket←#.HTMLInput #.RESTful #.MiSocket∊∊⎕CLASS inst
+              MS3 RESTful MiSocket←#.HtmlPage #.RESTful #.MiSocket∊∊⎕CLASS inst
               :If MS3∨RESTful∨MiSocket
                   inst.(_Request _PageRef)←REQ inst
               :EndIf

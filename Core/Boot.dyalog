@@ -245,12 +245,7 @@
       Config.Name←Config Setting'Name' 0 'MiServer'
       Config.Port←Config Setting'Port' 1 8080
       Config.Production←Config Setting'Production' 1 0 ⍝ production mode?  (0/1 = development debug framework en/disabled)
-<<<<<<< HEAD
-⍝      Config.Rest←Config Setting'Rest' 1 0 ⍝ RESTful web service?
-      Config.Rest←{⎕ML←3 ⋄ ⍵⊂⍨~⍵∊' ,'}#.Strings.lc Config Setting'Rest' 0 '' ⍝ RESTful web service?
-=======
-      Config.RESTful←Config Setting'RESTful' 1 0 ⍝ RESTful web service?
->>>>>>> Dyalog/development
+      Config.RESTful←{⎕ML←3 ⋄ ⍵⊂⍨~⍵∊' ,'}#.Strings.lc Config Setting'RESTful' 0 '' ⍝ RESTful web service?
       Config.RootCertDir←Config Setting'RootCertDir' 0 ''
       Config.Root←folderize MSRoot{((isRelPath ⍵)/⍺),⍵}AppRoot
       Config.SSLFlags←Config Setting'SSLFlags' 1(32+64)  ⍝ Accept Without Validating, RequestClientCertificate
