@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>MS3 - Chat through sockets</title>
+	<script src="js/jquery-1.10.2.min.js"></script>
+	<script src="js/streaming.js"></script>
+</head>
+<body>
+<div style="margin-left:auto; margin-right: auto;">
+	<label> Handle: </label>
+	<input id="_handle" type="text"> </input>
+	<label> Message: </label>
+	<input id="_message" type="text"> </input>
+	<button onclick="ms3.sendMessage()"> Send </button>
+	<label style="margin-left: auto;" id="status">Unconnected</label>
+		
+</div>
+<div id="output">
+	<p> [Welcome to Gil's Chat! Beware trespassers will be shot!] </p>
+</div>
+</body>
+</html>
