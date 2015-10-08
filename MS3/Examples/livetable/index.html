@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Live table updates</title>
+	<!--
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+	-->
+	<script src="js/jquery-2.1.4.min.js"></script>
+	<script src="js/angular-1.4.7.min.js"></script>
+	<script src="js/streaming.js"></script>
+</head>
+<body>
+<div style="margin-left:auto; margin-right: auto;">
+	<label> Handle: </label>
+	<input id="_handle" type="text"> </input>
+	<label> Message: </label>
+	<input id="_message" type="text"> </input>
+	<button onclick="ms3.sendMessage()"> Send </button>
+	<label style="margin-left: auto;" id="status">Unconnected</label>
+		
+</div>
+<div id="output">
+	<p> [Welcome to Gil's Chat! Beware trespassers will be shot!] </p>
+</div>
+</body>
+</html>
