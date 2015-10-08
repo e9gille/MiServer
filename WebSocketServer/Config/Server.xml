@@ -1,0 +1,9 @@
+<Server>
+    <Name>WebSocketServer</Name>
+    <ClassName>WSS</ClassName>      <!-- class name for the core server component -->
+    <AllowedHttpCommands>get,put,delete,post</AllowedHttpCommands>
+    <AllowNullOrigin>1</AllowNullOrigin>
+    <Production>0</Production>
+    <FormatHtml>0</FormatHtml>
+    <Rest>/games,/lj</Rest>
+</Server>

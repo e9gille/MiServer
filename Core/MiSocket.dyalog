@@ -71,17 +71,7 @@
       hdrs⍪←'Connection' 'Upgrade'
       hdrs⍪←'Sec-WebSocket-Accept'ws_accept
       res.Headers←hdrs
-     ⍝Sec-WebSocket-Extensions
-     ⍝Sec-WebSocket-Protocol: chat
-     ⍝
      
-⍝      status←res.((⍕Status),' ',StatusText)
-⍝      hdr←{⎕ML←3 ⋄ ∊⍵}{⍺,': ',⍵,NL}/res.Headers
-⍝      answer←(toutf8'HTTP/1.1 ',status,NL,'Content-Length: ',(⍕0),NL,hdr,NL),res.HTML
-⍝
-⍝      :If 0≠1⊃z←#.DRC.Send obj answer
-⍝               ⍝ Failed? What to do?
-⍝      :EndIf
       resp←''
     ∇
 

@@ -54,6 +54,6 @@
 		$("#status").html(message);
 	}
 	
-	ms3.startStreaming("ws://"+window.location.host+"/Examples/chat/chat.dyalog");
+	ms3.startStreaming("ws://"+window.location.host+"/chat/chat.dyalog");
 	
 }( window.ms3 = window.ms3 || {}, window.jQuery ));

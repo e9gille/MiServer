@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html ng-app="myApp">
+<head>
+	<meta charset="utf-8">
+	<title>Live table updates</title>
+	<!--
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+	-->
+	<script src="js/angular-1.4.7.min.js"></script>
+	<script src="js/streaming.js"></script>
+</head>
+<body>
+<div ng-controller="recordsCtrl"> 
+	<p>WebSocket status: {{status}}</p>
+	<table>
+		<tr ng-repeat="rec in records">
+			<td ng-repeat="item in rec track by $index">{{ item }}</td>
+		</tr>
+	</table>
+
+</div>
+</body>
+</html>
