@@ -5,5 +5,5 @@
     <AllowNullOrigin>1</AllowNullOrigin>
     <Production>0</Production>
     <FormatHtml>0</FormatHtml>
-    <Rest>/games,/lj</Rest>
+    <RESTful>/livetable/tables</RESTful>
 </Server>

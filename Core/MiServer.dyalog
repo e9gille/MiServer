@@ -406,7 +406,8 @@
       :If 2=conns.⎕NC'PeerCert' ⋄ REQ.PeerCert←conns.PeerCert ⋄ :EndIf       ⍝ Add Client Cert Information
      
       :If ~0∊⍴Config.RESTful  ⍝ if running RESTful web service...
-          n←+/∧\2>+\REQ.Page∊'/\'
+⍝          n←+/∧\2>+\REQ.Page∊'/\'
+          n←⌈/Config.RESTful{(∨/⍺⍷⍵)×≢⍺}¨⊂REQ.Page
           restpage←n↑REQ.Page
       :AndIf (⊂restpage)∊Config.RESTful
           REQ.RESTfulReq←n↓REQ.Page
@@ -747,7 +748,7 @@
     ⍝ Return all open
       r←⍬
       :If ~0∊⍴conns←Common.(⎕NL-9)
-          ns←url{(⍵.Page∊⊂⍺)/⍵}{⍵.IsWebSocket/⍵}Common.⍎¨conns
+          ns←url{0=≢⍵:⍬ ⋄ (⍵.Page∊⊂⍺)/⍵}{⍵.IsWebSocket/⍵}Common.⍎¨conns
       :AndIf ~0∊⍴ns
           r←{⎕NEW #.WebSocket(,⊂⍵)}¨ns.Connection
       :EndIf

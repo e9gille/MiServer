@@ -1,0 +1,3 @@
+﻿:Class tables : MiSocket
+
+:EndClass
