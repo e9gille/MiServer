@@ -94,7 +94,7 @@
           256|83 ⎕DR ⍺{⍵≠(⍴⍵)⍴⍺}binary ⍵
       }
 
-    ∇ {fragSize}SendFrame(opcode payload);fin;rsv;mask;op;length;frame;fragments;opcodes;fins;data;opc
+    ∇ {fragSize}SendFrame(opcode payload);fin;rsv;mask;op;length;frame;fragments;opcodes;fins;data;opc;r
 ⍝ Opcode   Meaning                 Reference
 ⍝       0  Continuation Frame      [RFC6455]
 ⍝       1  Text Frame              [RFC6455]
@@ -123,7 +123,7 @@
               7 binary ⍵
           }≢data
           frame←(83 ⎕DR fin,rsv,op,mask,length),data
-          #.DRC.Send connection frame
+          r←#.DRC.Send connection frame
       :EndFor
      ⍝
     ∇

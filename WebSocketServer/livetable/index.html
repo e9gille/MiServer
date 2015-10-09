@@ -12,6 +12,14 @@
 </head>
 <body>
 <div ng-controller="recordsCtrl"> 
+	<h1>Databound tables</h1>
+	<p>In this example we explore how changes to objects on the server can be pushed to the client using server initiated communication.</p>
+	<p>To try this out, go to the back end server session and set the variables in the #.Databinding namespace. Try things like:</p>
+	<ul>
+		<li>#.Databinding.TableA←10 10(?⍴)100</li>
+		<li>#.Databinding.TableA[5;]←0</li>
+		<li>#.Databinding.TableA[;3]←99</li>
+	</ul>
 	<p>WebSocket status: {{status}}</p>
 	<table>
 		<tr ng-repeat="rec in records">
